@@ -11,35 +11,37 @@ class MyDrawer extends StatefulWidget {
 }
 
 class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
-  late AnimationController _childSlideAnimationController;
-  late AnimationController _drawerSlideAnimationController;
+  late AnimationController _childAnimationController;
+  late AnimationController _drawerAnimationController;
 
-  late Animation<double> _childRotationAnimation;
-  late Animation<double> _drawerRotationAnimation;
+  late Animation<double> _childAnimation;
+  late Animation<double> _drawerAnimation;
 
   @override
   void initState() {
     super.initState();
-    _childSlideAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _childRotationAnimation = Tween<double>(begin: 0, end: -pi / 2)
-        .animate(_childSlideAnimationController);
 
-    _drawerSlideAnimationController = AnimationController(
+    _childAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    _drawerRotationAnimation = Tween<double>(begin: pi / 2, end: 0)
-        .animate(_drawerSlideAnimationController);
+    _drawerAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _childAnimation = Tween<double>(begin: 0, end: -pi / 2)
+        .animate(_childAnimationController);
+
+    _drawerAnimation = Tween<double>(begin: pi / 2.7, end: 0)
+        .animate(_drawerAnimationController);
   }
 
   @override
   void dispose() {
     super.dispose();
-    _childSlideAnimationController.dispose();
-    _drawerSlideAnimationController.dispose();
+    _childAnimationController.dispose();
+    _drawerAnimationController.dispose();
   }
 
   @override
@@ -48,23 +50,24 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
     double maxDrag = screenWidth * 0.8;
     return GestureDetector(
       onHorizontalDragUpdate: (details) {
-        _childSlideAnimationController.value += details.delta.dx / maxDrag;
-        _drawerSlideAnimationController.value += details.delta.dx / maxDrag;
+        final delta = details.delta.dx / maxDrag;
+        _childAnimationController.value += delta;
+        _drawerAnimationController.value += delta;
       },
       onHorizontalDragEnd: (details) {
-        if (_childSlideAnimationController.value < 0.5) {
-          _childSlideAnimationController.reverse();
-          _drawerSlideAnimationController.reverse();
+        if (_childAnimationController.value < 0.5) {
+          _childAnimationController.reverse();
+          _drawerAnimationController.reverse();
         } else {
-          _childSlideAnimationController.forward();
-          _drawerSlideAnimationController.forward();
+          _childAnimationController.forward();
+          _drawerAnimationController.forward();
         }
       },
       child: AnimatedBuilder(
         animation: Listenable.merge(
           [
-            _childSlideAnimationController,
-            _drawerSlideAnimationController,
+            _childAnimationController,
+            _drawerAnimationController,
           ],
         ),
         builder: (context, child) {
@@ -78,9 +81,9 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
                 transform: Matrix4.identity()
                   ..setEntry(3, 2, 0.001)
                   ..translate(
-                    _childSlideAnimationController.value * maxDrag,
+                    _childAnimationController.value * maxDrag,
                   )
-                  ..rotateY(_childRotationAnimation.value),
+                  ..rotateY(_childAnimation.value),
                 child: widget.child,
               ),
               Transform(
@@ -88,10 +91,9 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
                 transform: Matrix4.identity()
                   ..setEntry(3, 2, 0.001)
                   ..translate(
-                    -screenWidth +
-                        _drawerSlideAnimationController.value * maxDrag,
+                    -screenWidth + _drawerAnimationController.value * maxDrag,
                   )
-                  ..rotateY(_drawerRotationAnimation.value),
+                  ..rotateY(_drawerAnimation.value),
                 child: widget.drawer,
               ),
             ],
